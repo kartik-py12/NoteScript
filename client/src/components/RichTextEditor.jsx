@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Button } from './ui/button';
+import LinkInputDialog from './LinkInputDialog';
 import { 
   Bold, 
   Italic, 
@@ -21,6 +22,9 @@ import {
 import './RichTextEditor.css';
 
 const RichTextEditor = ({ content, onChange, placeholder = "Start writing your note..." }) => {
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkData, setLinkData] = useState({ url: '', text: '' });
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -46,21 +50,33 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
+    const selectedText = editor.state.doc.textBetween(
+      editor.state.selection.from,
+      editor.state.selection.to
+    );
+    
+    setLinkData({
+      url: previousUrl || '',
+      text: selectedText || ''
+    });
+    setShowLinkDialog(true);
+  };
 
-    // cancelled
-    if (url === null) {
-      return;
-    }
-
-    // empty
+  const handleLinkConfirm = (url, text) => {
+    setShowLinkDialog(false);
+    
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
 
-    // update link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    // If text is provided and no text is selected, insert the text with the link
+    if (text && editor.state.selection.empty) {
+      editor.chain().focus().insertContent(`<a href="${url}">${text}</a>`).run();
+    } else {
+      // Apply link to selected text or insert URL if no text selected
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }
   };
 
   const ToolbarButton = ({ onClick, isActive, children, title }) => (
@@ -76,9 +92,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
   );
 
   return (
-    <div className="rich-text-editor border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
-      {/* Toolbar */}
-      <div className="toolbar border-b p-3 flex flex-wrap gap-1 bg-muted/30">
+    <>
+      <div className="rich-text-editor border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
+        {/* Toolbar */}
+        <div className="toolbar border-b p-3 flex flex-wrap gap-1 bg-muted/30">
         {/* Text Formatting */}
         <div className="flex items-center space-x-1 border-r pr-2 mr-2">
           <ToolbarButton
@@ -227,7 +244,17 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
           className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 min-h-[500px] bg-background"
         />
       </div>
-    </div>
+      </div>
+
+      {/* Link Input Dialog */}
+      <LinkInputDialog
+        isOpen={showLinkDialog}
+        onClose={() => setShowLinkDialog(false)}
+        onConfirm={handleLinkConfirm}
+        defaultUrl={linkData.url}
+        defaultText={linkData.text}
+      />
+    </>
   );
 };
 
