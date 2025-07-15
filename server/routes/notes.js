@@ -1,8 +1,8 @@
-const express = require('express');
-const Note = require('../models/Note');
-const auth = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
-const { noteSchema, updateNoteSchema } = require('../validation/schemas');
+import express from 'express';
+import Note from '../models/Note.js';
+import auth from '../middleware/auth.js';
+import { validateRequest } from '../middleware/validation.js';
+import { noteSchema, updateNoteSchema } from '../validation/schemas.js';
 
 const router = express.Router();
 
@@ -286,4 +286,4 @@ router.get('/tags/all', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

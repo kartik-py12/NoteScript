@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 // User registration schema
 const registerSchema = z.object({
@@ -46,7 +46,7 @@ const updateNoteSchema = z.object({
   isPublic: z.boolean().optional()
 });
 
-module.exports = {
+export {
   registerSchema,
   loginSchema,
   noteSchema,

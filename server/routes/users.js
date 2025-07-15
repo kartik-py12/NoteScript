@@ -1,8 +1,8 @@
-const express = require('express');
-const { query, validationResult } = require('express-validator');
-const User = require('../models/User');
-const Note = require('../models/Note');
-const auth = require('../middleware/auth');
+import express from 'express';
+import { query, validationResult } from 'express-validator';
+import User from '../models/User.js';
+import Note from '../models/Note.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -184,4 +184,4 @@ router.get('/:id/stats', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

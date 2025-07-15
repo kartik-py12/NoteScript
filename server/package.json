@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Backend API for Twilight Note Flow",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "azure": "NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_OPTIONS=\"--tls-min-v1.2\" node index.js",
+    "azure-debug": "NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_OPTIONS=\"--tls-min-v1.2\" NODE_DEBUG=tls,net node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
