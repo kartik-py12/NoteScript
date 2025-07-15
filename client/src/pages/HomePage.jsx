@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { FileText, PlusCircle, Eye, Lock, Calendar, TrendingUp } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+// import useNotesStore from '../store/notesStore';
 import useNotesStore from '../store/notesStore';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { getRecentNotes, getNoteStats } = useNotesStore();
+  const { getRecentNotes, getNoteStats, loadNotes } = useNotesStore();
+
+  // Load notes when component mounts
+  useEffect(() => {
+    if (user) {
+      loadNotes();
+    }
+  }, [user, loadNotes]);
 
   const recentNotes = getRecentNotes(3, user?.id);
   const stats = getNoteStats(user?.id);
@@ -128,9 +136,9 @@ const HomePage = () => {
                   <div className="space-y-4">
                     {recentNotes.map((note) => (
                       <div
-                        key={note.id}
+                        key={note._id}
                         className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/editor/${note.id}`)}
+                        onClick={() => navigate(`/editor/${note._id}`)}
                       >
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="font-semibold text-lg truncate">

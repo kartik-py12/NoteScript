@@ -11,17 +11,15 @@ import NoteEditorPage from './pages/NoteEditorPage';
 import NoteViewPage from './pages/NoteViewPage';
 import useAuthStore from './store/authStore';
 import useThemeStore from './store/themeStore';
-import useNotesStore from './store/notesStore';
+import './index.css';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
   const { initTheme } = useThemeStore();
-  const {loadNotes} = useNotesStore();
 
-  // Initialize theme on app load
+  // Initialize theme on app start
   useEffect(() => {
     initTheme();
-    loadNotes();
   }, [initTheme]);
 
   return (
@@ -43,6 +41,9 @@ function App() {
               isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
             } 
           />
+
+          {/* Public note viewing (accessible to everyone) */}
+          <Route path="/note/:id" element={<NoteViewPage />} />
           
           {/* Protected Routes */}
           <Route 
@@ -85,16 +86,8 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/note/:id" 
-            element={
-              <ProtectedRoute>
-                <NoteViewPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Catch all route */}
+
+          {/* Catch all route - redirect to home or login */}
           <Route 
             path="*" 
             element={

@@ -1,5 +1,5 @@
 {
-  "name": "twilight-note-flow",
+  "name": "notescript",
   "version": "1.0.0",
   "description": "A modern note-taking application with public sharing capabilities",
   "main": "server/index.js",

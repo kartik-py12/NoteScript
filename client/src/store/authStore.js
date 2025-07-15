@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { authAPI } from '../services/api';
 
 const useAuthStore = create(
   persist(
@@ -7,70 +8,133 @@ const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      error: null,
+      
+      // Clear error
+      clearError: () => set({ error: null }),
       
       // Login action
       login: async (email, password) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         try {
-          // TODO: Replace with actual API call
-          const mockUser = {
-            id: '1',
-            email,
-            name: email.split('@')[0],
-            createdAt: new Date().toISOString()
-          };
+          const response = await authAPI.login({ email, password });
           
-          setTimeout(() => {
+          if (response.success) {
             set({ 
-              user: mockUser, 
+              user: response.user, 
               isAuthenticated: true, 
-              isLoading: false 
+              isLoading: false,
+              error: null
             });
-          }, 1000);
-          
-          return { success: true };
+            return { success: true };
+          } else {
+            set({ 
+              isLoading: false, 
+              error: response.message || 'Login failed' 
+            });
+            return { success: false, error: response.message };
+          }
         } catch (error) {
-          set({ isLoading: false });
-          return { success: false, error: error.message };
+          const errorMessage = error.message || 'Network error during login';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
         }
       },
       
       // Register action
       register: async (name, email, password) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         try {
-          // TODO: Replace with actual API call
-          const mockUser = {
-            id: '1',
-            email,
-            name,
-            createdAt: new Date().toISOString()
-          };
+          const response = await authAPI.register({ name, email, password });
           
-          setTimeout(() => {
+          if (response.success) {
             set({ 
-              user: mockUser, 
+              user: response.user, 
               isAuthenticated: true, 
-              isLoading: false 
+              isLoading: false,
+              error: null
             });
-          }, 1000);
-          
-          return { success: true };
+            return { success: true };
+          } else {
+            set({ 
+              isLoading: false, 
+              error: response.message || 'Registration failed' 
+            });
+            return { success: false, error: response.message };
+          }
         } catch (error) {
-          set({ isLoading: false });
-          return { success: false, error: error.message };
+          const errorMessage = error.message || 'Network error during registration';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
         }
       },
       
       // Logout action
-      logout: () => {
-        set({ user: null, isAuthenticated: false });
+      logout: async () => {
+        try {
+          await authAPI.logout();
+        } catch (error) {
+          console.error('Logout error:', error);
+        } finally {
+          set({ 
+            user: null, 
+            isAuthenticated: false, 
+            error: null 
+          });
+        }
       },
       
-      // Check auth status
-      checkAuth: () => {
-        const { user } = get();
-        return !!user;
+      // Get current user (for auto-login)
+      getCurrentUser: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await authAPI.getCurrentUser();
+          
+          if (response.success) {
+            set({ 
+              user: response.user, 
+              isAuthenticated: true, 
+              isLoading: false,
+              error: null
+            });
+            return { success: true };
+          } else {
+            set({ 
+              user: null, 
+              isAuthenticated: false, 
+              isLoading: false,
+              error: null
+            });
+            return { success: false };
+          }
+        } catch (error) {
+          set({ 
+            user: null, 
+            isAuthenticated: false, 
+            isLoading: false,
+            error: null
+          });
+          return { success: false };
+        }
+      },
+      
+      // Refresh token
+      refreshToken: async () => {
+        try {
+          const response = await authAPI.refreshToken();
+          return response.success;
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          // If refresh fails, logout user
+          get().logout();
+          return false;
+        }
       }
     }),
     {
@@ -83,4 +147,5 @@ const useAuthStore = create(
   )
 );
 
+export { useAuthStore };
 export default useAuthStore;

@@ -1,46 +1,54 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validation');
+const { registerSchema, loginSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
-// Register
-router.post('/register', [
-  body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+// Helper function to generate token and set cookie
+const generateTokenAndSetCookie = (userId, res) => {
+  const token = jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
 
+  // Set cookie with token
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+
+  return token;
+};
+
+// Register
+router.post('/register', validateRequest(registerSchema), async (req, res) => {
+  try {
     const { name, email, password } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'User already exists with this email' 
+      });
     }
 
     // Create new user
     const user = new User({ name, email, password });
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    // Generate token and set cookie
+    const token = generateTokenAndSetCookie(user._id, res);
 
     res.status(201).json({
+      success: true,
       message: 'User registered successfully',
       token,
       user: {
@@ -52,128 +60,119 @@ router.post('/register', [
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during registration' 
+    });
   }
 });
 
 // Login
-router.post('/login', [
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
-  body('password').exists().withMessage('Password is required')
-], async (req, res) => {
+router.post('/login', validateRequest(loginSchema), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    // Check if user exists
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(400).json({ message: 'Account is deactivated' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Account is deactivated. Please contact support.' 
+      });
     }
 
-    // Check password
+    // Validate password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Generate token and set cookie
+    const token = generateTokenAndSetCookie(user._id, res);
 
     res.json({
+      success: true,
       message: 'Login successful',
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        createdAt: user.createdAt
+        lastLogin: user.lastLogin
       }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during login' 
+    });
   }
+});
+
+// Logout
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ 
+    success: true,
+    message: 'Logged out successfully' 
+  });
 });
 
 // Get current user
 router.get('/me', auth, async (req, res) => {
   try {
     res.json({
+      success: true,
       user: {
         id: req.user._id,
         name: req.user.name,
         email: req.user.email,
-        createdAt: req.user.createdAt
+        createdAt: req.user.createdAt,
+        lastLogin: req.user.lastLogin
       }
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error' 
+    });
   }
 });
 
-// Update user profile
-router.put('/profile', auth, [
-  body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-  body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email')
-], async (req, res) => {
+// Refresh token
+router.post('/refresh', auth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { name, email } = req.body;
-    const updateData = {};
-
-    if (name) updateData.name = name;
-    if (email) {
-      // Check if email is already taken by another user
-      const existingUser = await User.findOne({ email, _id: { $ne: req.user._id } });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email is already taken' });
-      }
-      updateData.email = email;
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      { new: true }
-    );
+    // Generate new token and set cookie
+    const token = generateTokenAndSetCookie(req.user._id, res);
 
     res.json({
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt
-      }
+      success: true,
+      message: 'Token refreshed successfully',
+      token
     });
   } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error during profile update' });
+    console.error('Token refresh error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during token refresh' 
+    });
   }
 });
 

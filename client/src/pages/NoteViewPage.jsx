@@ -10,6 +10,7 @@ import NoteContent from '../components/NoteContent';
 
 const NoteViewPage = () => {
   const { id } = useParams();
+//   console.log(id);
   const navigate = useNavigate();
   const { getNoteById } = useNotesStore();
   const { user } = useAuthStore();
@@ -62,7 +63,7 @@ const NoteViewPage = () => {
           
           {isOwner && (
             <Button 
-              onClick={() => navigate(`/editor/${note.id}`)}
+              onClick={() => navigate(`/editor/${note._id}`)}
               className="flex items-center space-x-2"
             >
               <Edit3 className="w-4 h-4" />
@@ -84,7 +85,7 @@ const NoteViewPage = () => {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <User className="w-4 h-4" />
-                    <span>By {note.author}</span>
+                    <span>By {note.author.name}</span>
                   </div>
                   
                   <div className="flex items-center space-x-1">

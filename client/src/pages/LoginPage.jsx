@@ -14,7 +14,7 @@ const LoginPage = () => {
   });
   const [error, setError] = useState('');
   
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, error: authError, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,6 +27,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    clearError();
 
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
@@ -69,9 +70,9 @@ const LoginPage = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
+              {(error || authError) && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-                  {error}
+                  {error || authError}
                 </div>
               )}
 

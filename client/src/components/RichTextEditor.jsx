@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -61,6 +61,19 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       onChange(editor.getHTML());
     },
   });
+
+  // Update editor content when the content prop changes
+  useEffect(() => {
+    if (editor && content !== undefined && content !== editor.getHTML()) {
+      const safeContent = content || '';
+      // Use a timeout to ensure the editor is fully initialized
+      setTimeout(() => {
+        if (editor && !editor.isDestroyed) {
+          editor.commands.setContent(safeContent, false);
+        }
+      }, 0);
+    }
+  }, [editor, content]);
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
@@ -286,6 +299,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       {/* Editor Content */}
       <div className="relative bg-background">
         <div className="max-h-[70vh] overflow-y-auto">
+            
           <EditorContent 
             editor={editor} 
             className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 bg-background min-h-[400px]"

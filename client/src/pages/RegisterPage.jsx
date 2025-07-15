@@ -16,7 +16,7 @@ const RegisterPage = () => {
   });
   const [error, setError] = useState('');
   
-  const { register, isLoading } = useAuthStore();
+  const { register, isLoading, error: authError, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {

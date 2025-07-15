@@ -22,7 +22,7 @@ const NoteEditorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { getNoteById, createNote, updateNote, getAllTags } = useNotesStore();
+  const { getNoteById, createNote, updateNote, getAllTags, loadNoteById } = useNotesStore();
   
   const isEditing = !!id;
   const existingNote = isEditing ? getNoteById(id) : null;
@@ -36,6 +36,13 @@ const NoteEditorPage = () => {
   const [lastSaved, setLastSaved] = useState(null);
   
   const allTags = getAllTags();
+
+  // Load note if editing and note not found in store
+  useEffect(() => {
+    if (isEditing && id && !existingNote) {
+      loadNoteById(id);
+    }
+  }, [isEditing, id, existingNote, loadNoteById]);
 
   // Initialize form with existing note data
   useEffect(() => {
@@ -53,7 +60,7 @@ const NoteEditorPage = () => {
     
     const timer = setTimeout(() => {
       handleSave(true); // silent save
-    }, 2000);
+    }, 60000);
 
     return () => clearTimeout(timer);
   }, [title, content, tags, isPublic]);
@@ -79,10 +86,16 @@ const NoteEditorPage = () => {
       };
 
       if (isEditing) {
-        updateNote(id, noteData);
+        console.log('Updating note with ID:', id, 'and data:', noteData);
+        if (!id) {
+          throw new Error('Note ID is required for updating');
+        }
+        await updateNote(id, noteData);
       } else {
-        const newNote = createNote(noteData);
-        navigate(`/editor/${newNote.id}`, { replace: true });
+        const result = await createNote(noteData);
+        if (result.success) {
+          navigate(`/editor/${result.note._id}`, { replace: true });
+        }
       }
       
       setLastSaved(new Date());
@@ -210,6 +223,7 @@ const NoteEditorPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {/* {console.log(content)} */}
                 <RichTextEditor
                   content={content}
                   onChange={setContent}

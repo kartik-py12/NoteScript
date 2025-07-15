@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -28,6 +28,7 @@ const MyNotesPage = () => {
     getFilteredNotes,
     searchQuery,
     setSearchQuery,
+    loadNotes,
     selectedTags,
     setSelectedTags,
     sortBy,
@@ -35,14 +36,22 @@ const MyNotesPage = () => {
     sortOrder,
     setSortOrder,
     getAllTags,
-    deleteNote
+    deleteNote,
+    
   } = useNotesStore();
 
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showFilters, setShowFilters] = useState(false);
 
-  const notes = getFilteredNotes(false, user?.id);
+  const notes = getFilteredNotes(null,user?.id);
   const allTags = getAllTags();
+
+// Load notes when component mounts
+//   useEffect(() => {
+//     if (user) {
+//       loadNotes();
+//     }
+//   }, [user, loadNotes]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -83,9 +92,9 @@ const MyNotesPage = () => {
 
   const renderNoteCard = (note) => (
     <Card
-      key={note.id}
+      key={note._id}
       className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => navigate(`/editor/${note.id}`)}
+      onClick={() => navigate(`/editor/${note._id}`)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -100,7 +109,7 @@ const MyNotesPage = () => {
               variant="ghost"
               size="icon"
               className="w-6 h-6 text-red-500 hover:text-red-700"
-              onClick={(e) => handleDeleteNote(note.id, e)}
+              onClick={(e) => handleDeleteNote(note._id, e)}
             >
               <Trash2 className="w-3 h-3" />
             </Button>
@@ -136,9 +145,9 @@ const MyNotesPage = () => {
 
   const renderNoteList = (note) => (
     <div
-      key={note.id}
+      key={note._id}
       className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-      onClick={() => navigate(`/editor/${note.id}`)}
+      onClick={() => navigate(`/editor/${note._id}`)}
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-semibold text-lg">{note.title}</h3>
@@ -152,7 +161,7 @@ const MyNotesPage = () => {
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-red-500 hover:text-red-700"
-            onClick={(e) => handleDeleteNote(note.id, e)}
+            onClick={(e) => handleDeleteNote(note._id, e)}
           >
             <Trash2 className="w-3 h-3" />
           </Button>
@@ -331,11 +340,11 @@ const MyNotesPage = () => {
           </Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {notes.map(renderNoteCard)}
+            {notes.map((note) => renderNoteCard(note))}
           </div>
         ) : (
           <div className="space-y-4">
-            {notes.map(renderNoteList)}
+            {notes.map((note) => renderNoteList(note))}
           </div>
         )}
       </div>

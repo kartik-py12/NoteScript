@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -28,6 +28,7 @@ const PublicNotesPage = () => {
     setSelectedTags,
     sortBy,
     setSortBy,
+    loadNotes,
     sortOrder,
     setSortOrder,
     getAllTags
@@ -35,6 +36,11 @@ const PublicNotesPage = () => {
 
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showFilters, setShowFilters] = useState(false);
+
+  // Load notes when component mounts
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const notes = getFilteredNotes(true); // Get public notes only
   const allTags = getAllTags();
@@ -71,9 +77,9 @@ const PublicNotesPage = () => {
 
   const renderNoteCard = (note) => (
     <Card
-      key={note.id}
+      key={note._id}
       className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => navigate(`/note/${note.id}`)}
+      onClick={() => navigate(`/note/${note._id}`)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -96,7 +102,7 @@ const PublicNotesPage = () => {
           <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center">
               <User className="w-3 h-3 mr-1" />
-              {note.author}
+              {note.author?.name || 'Unknown'}
             </div>
             <div className="flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
@@ -107,13 +113,13 @@ const PublicNotesPage = () => {
       </CardContent>
     </Card>
   );
-
   const renderNoteList = (note) => (
     <div
-      key={note.id}
+      key={note.author._id}
       className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-      onClick={() => navigate(`/note/${note.id}`)}
+      onClick={() => navigate(`/note/${note.author._id}`)}
     >
+        {/* {console.log(note)} */}
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-semibold text-lg">{note.title}</h3>
         <Eye className="w-4 h-4 text-green-500" />
@@ -132,7 +138,7 @@ const PublicNotesPage = () => {
         <div className="flex items-center space-x-4 text-xs text-gray-500">
           <div className="flex items-center">
             <User className="w-3 h-3 mr-1" />
-            {note.author}
+            {note.author?.name || 'Unknown'}
           </div>
           <div className="flex items-center">
             <Calendar className="w-3 h-3 mr-1" />
@@ -306,11 +312,11 @@ const PublicNotesPage = () => {
           </Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {notes.map(renderNoteCard)}
+            {notes.map((note) => renderNoteCard(note))}
           </div>
         ) : (
           <div className="space-y-4">
-            {notes.map(renderNoteList)}
+            {notes.map((note) => renderNoteList(note))}
           </div>
         )}
       </div>

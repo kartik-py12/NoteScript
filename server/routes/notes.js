@@ -1,30 +1,14 @@
 const express = require('express');
-const { body, validationResult, query } = require('express-validator');
 const Note = require('../models/Note');
 const auth = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validation');
+const { noteSchema, updateNoteSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
 // Get all notes (with filtering and pagination)
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('isPublic').optional().isBoolean().withMessage('isPublic must be a boolean'),
-  query('author').optional().isMongoId().withMessage('Author must be a valid ID'),
-  query('tags').optional().isString().withMessage('Tags must be a string'),
-  query('search').optional().isString().withMessage('Search must be a string'),
-  query('sortBy').optional().isIn(['createdAt', 'updatedAt', 'title', 'views']).withMessage('Invalid sort field'),
-  query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Sort order must be asc or desc')
-], async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -81,7 +65,14 @@ router.get('/', [
 // Get single note by ID
 router.get('/:id', async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id)
+    const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid note ID format' });
+    }
+    
+    const note = await Note.findById(id)
       .populate('author', 'name email');
 
     if (!note || !note.isActive) {
@@ -103,22 +94,8 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new note
-router.post('/', auth, [
-  body('title').trim().isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
-  body('content').isLength({ min: 1 }).withMessage('Content is required'),
-  body('tags').optional().isArray().withMessage('Tags must be an array'),
-  body('tags.*').optional().trim().isLength({ max: 30 }).withMessage('Each tag must be 30 characters or less'),
-  body('isPublic').optional().isBoolean().withMessage('isPublic must be a boolean')
-], async (req, res) => {
+router.post('/', auth, validateRequest(noteSchema), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const { title, content, tags = [], isPublic = false } = req.body;
 
     // Process tags
@@ -148,26 +125,22 @@ router.post('/', auth, [
 });
 
 // Update note
-router.put('/:id', auth, [
-  body('title').optional().trim().isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
-  body('content').optional().isLength({ min: 1 }).withMessage('Content cannot be empty'),
-  body('tags').optional().isArray().withMessage('Tags must be an array'),
-  body('tags.*').optional().trim().isLength({ max: 30 }).withMessage('Each tag must be 30 characters or less'),
-  body('isPublic').optional().isBoolean().withMessage('isPublic must be a boolean')
-], async (req, res) => {
+router.put('/:id', auth, validateRequest(updateNoteSchema), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid note ID format' });
     }
-
-    const note = await Note.findById(req.params.id);
+    
+    const note = await Note.findById(id);
 
     if (!note || !note.isActive) {
-      return res.status(404).json({ message: 'Note not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Note not found' 
+      });
     }
 
     // Check if user owns the note
@@ -189,7 +162,7 @@ router.put('/:id', auth, [
     }
 
     const updatedNote = await Note.findByIdAndUpdate(
-      req.params.id,
+      id,
       updateData,
       { new: true }
     ).populate('author', 'name email');
@@ -210,7 +183,14 @@ router.put('/:id', auth, [
 // Delete note
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
+    const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid note ID format' });
+    }
+    
+    const note = await Note.findById(id);
 
     if (!note || !note.isActive) {
       return res.status(404).json({ message: 'Note not found' });
@@ -238,7 +218,14 @@ router.delete('/:id', auth, async (req, res) => {
 // Toggle like on note
 router.post('/:id/like', auth, async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
+    const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid note ID format' });
+    }
+    
+    const note = await Note.findById(id);
 
     if (!note || !note.isActive) {
       return res.status(404).json({ message: 'Note not found' });
