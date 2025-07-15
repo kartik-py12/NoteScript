@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { ArrowLeft, Calendar, User, Eye, Edit3 } from 'lucide-react';
 import useNotesStore from '../store/notesStore';
 import useAuthStore from '../store/authStore';
+import NoteContent from '../components/NoteContent';
 
 const NoteViewPage = () => {
   const { id } = useParams();
@@ -113,10 +114,7 @@ const NoteViewPage = () => {
           
           <CardContent className="pt-6">
             {/* Note Content */}
-            <div 
-              className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary"
-              dangerouslySetInnerHTML={{ __html: note.content }}
-            />
+            <NoteContent content={note.content} />
             
             {/* Footer */}
             <div className="border-t pt-6 mt-8">

@@ -6,19 +6,14 @@ import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import RichTextEditor from '../components/RichTextEditor';
-import NotePreview from '../components/NotePreview';
 import { 
   Save, 
   ArrowLeft, 
-  Eye, 
-  EyeOff, 
   Tag, 
   X,
   Calendar,
   FileText,
-  Loader2,
-  Split,
-  Edit3
+  Loader2
 } from 'lucide-react';
 import useNotesStore from '../store/notesStore';
 import useAuthStore from '../store/authStore';
@@ -39,7 +34,6 @@ const NoteEditorPage = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-  const [viewMode, setViewMode] = useState('edit'); // 'edit', 'preview', 'split'
   
   const allTags = getAllTags();
 
@@ -159,40 +153,9 @@ const NoteEditorPage = () => {
           </Button>
           
           <div className="flex items-center space-x-4">
-            {/* View Mode Toggle */}
-            <div className="flex items-center space-x-1 border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'edit' ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode('edit')}
-                className="h-8 px-3"
-              >
-                <Edit3 className="w-3 h-3 mr-1" />
-                Edit
-              </Button>
-              <Button
-                variant={viewMode === 'split' ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode('split')}
-                className="h-8 px-3"
-              >
-                <Split className="w-3 h-3 mr-1" />
-                Split
-              </Button>
-              <Button
-                variant={viewMode === 'preview' ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode('preview')}
-                className="h-8 px-3"
-              >
-                <Eye className="w-3 h-3 mr-1" />
-                Preview
-              </Button>
-            </div>
-            
             {/* Auto-save indicator */}
             {lastSaved && (
-              <span className="text-sm text-gray-500 flex items-center space-x-1">
+              <span className="text-sm text-muted-foreground flex items-center space-x-1">
                 <Calendar className="w-3 h-3" />
                 <span>Saved at {formatLastSaved()}</span>
               </span>
@@ -219,62 +182,45 @@ const NoteEditorPage = () => {
           </div>
         </div>
 
-        <div className={`grid gap-6 ${viewMode === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-4'}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Editor Section */}
-          {(viewMode === 'edit' || viewMode === 'split') && (
-            <div className={viewMode === 'split' ? 'space-y-6' : 'lg:col-span-3 space-y-6'}>
-              {/* Title */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Note Title</Label>
-                    <Input
-                      id="title"
-                      placeholder="Enter your note title..."
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="text-lg font-semibold"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Content Editor */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="w-5 h-5" />
-                    <span>Content</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RichTextEditor
-                    content={content}
-                    onChange={setContent}
-                    placeholder="Start writing your note..."
+          <div className="lg:col-span-3 space-y-6">
+            {/* Title */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Note Title</Label>
+                  <Input
+                    id="title"
+                    placeholder="Enter your note title..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="text-lg font-semibold"
                   />
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Preview Section */}
-          {(viewMode === 'preview' || viewMode === 'split') && (
-            <div className={viewMode === 'split' ? 'space-y-6' : 'lg:col-span-3 space-y-6'}>
-              <NotePreview
-                title={title}
-                content={content}
-                tags={tags}
-                isPublic={isPublic}
-                author={user?.name}
-                createdAt={existingNote?.createdAt}
-                updatedAt={existingNote?.updatedAt}
-              />
-            </div>
-          )}
+            {/* Content Editor */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5" />
+                  <span>Content</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RichTextEditor
+                  content={content}
+                  onChange={setContent}
+                  placeholder="Start writing your note..."
+                />
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Sidebar */}
-          <div className={`space-y-6 ${viewMode === 'split' ? 'xl:col-span-2' : ''}`}>
+          <div className="space-y-6">
             {/* Note Settings */}
             <Card>
               <CardHeader>
@@ -287,16 +233,20 @@ const NoteEditorPage = () => {
                   <Button
                     variant={isPublic ? "default" : "outline"}
                     onClick={() => setIsPublic(!isPublic)}
-                    className="w-full justify-start"
+                    className={`w-full justify-start ${
+                      isPublic 
+                        ? 'bg-green-600 hover:bg-green-700 text-white' 
+                        : 'bg-orange-100 hover:bg-orange-200 text-orange-700 border-orange-300'
+                    }`}
                   >
                     {isPublic ? (
                       <>
-                        <Eye className="w-4 h-4 mr-2" />
+                        <div className="w-2 h-2 bg-green-300 rounded-full mr-2"></div>
                         Public - Visible to everyone
                       </>
                     ) : (
                       <>
-                        <EyeOff className="w-4 h-4 mr-2" />
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
                         Private - Only visible to you
                       </>
                     )}
@@ -304,7 +254,7 @@ const NoteEditorPage = () => {
                 </div>
 
                 {/* Word Count */}
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   Word count: {getWordCount()}
                 </div>
               </CardContent>
@@ -358,7 +308,7 @@ const NoteEditorPage = () => {
                 {/* Popular Tags */}
                 {allTags.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground">
                       Popular tags:
                     </Label>
                     <div className="flex flex-wrap gap-1">

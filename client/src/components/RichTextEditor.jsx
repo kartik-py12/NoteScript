@@ -7,7 +7,6 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { lowlight } from 'lowlight';
 import { Button } from './ui/button';
 import LinkInputDialog from './LinkInputDialog';
-import CodeBlockDialog from './CodeBlockDialog';
 import { 
   Bold, 
   Italic, 
@@ -23,38 +22,16 @@ import {
   Link as LinkIcon,
   Unlink
 } from 'lucide-react';
-import './RichTextEditor.css';
-import './SyntaxHighlight.css';
 
-// Import common language syntaxes for lowlight v2
+// Import only JavaScript for syntax highlighting
 import javascript from 'highlight.js/lib/languages/javascript';
-import typescript from 'highlight.js/lib/languages/typescript';
-import python from 'highlight.js/lib/languages/python';
-import java from 'highlight.js/lib/languages/java';
-import cpp from 'highlight.js/lib/languages/cpp';
-import html from 'highlight.js/lib/languages/xml';
-import css from 'highlight.js/lib/languages/css';
-import json from 'highlight.js/lib/languages/json';
-import bash from 'highlight.js/lib/languages/bash';
-import sql from 'highlight.js/lib/languages/sql';
 
-// Register languages with lowlight v2
+// Register only JavaScript with lowlight
 lowlight.registerLanguage('javascript', javascript);
-lowlight.registerLanguage('typescript', typescript);
-lowlight.registerLanguage('python', python);
-lowlight.registerLanguage('java', java);
-lowlight.registerLanguage('cpp', cpp);
-lowlight.registerLanguage('html', html);
-lowlight.registerLanguage('css', css);
-lowlight.registerLanguage('json', json);
-lowlight.registerLanguage('bash', bash);
-lowlight.registerLanguage('sql', sql);
 
 const RichTextEditor = ({ content, onChange, placeholder = "Start writing your note..." }) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [showCodeBlockDialog, setShowCodeBlockDialog] = useState(false);
   const [linkData, setLinkData] = useState({ url: '', text: '' });
-  const [codeBlockData, setCodeBlockData] = useState({ language: '', code: '' });
 
   const editor = useEditor({
     extensions: [
@@ -70,7 +47,9 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-secondary hover:text-secondary/80 underline',
+          class: 'text-secondary hover:text-secondary/80 underline cursor-pointer',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
       Placeholder.configure({
@@ -97,17 +76,17 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
     setShowLinkDialog(true);
   };
 
-  const handleLinkConfirm = (url, text) => {
+  const handleLinkConfirm = ({ url, text }) => {
     setShowLinkDialog(false);
     
-    if (url === '') {
+    if (!url || url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
 
     // If text is provided and no text is selected, insert the text with the link
     if (text && editor.state.selection.empty) {
-      editor.chain().focus().insertContent(`<a href="${url}">${text}</a>`).run();
+      editor.chain().focus().insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`).run();
     } else {
       // Apply link to selected text or insert URL if no text selected
       editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
@@ -115,29 +94,11 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
   };
 
   const handleCodeBlock = () => {
-    setCodeBlockData({ language: '', code: '' });
-    setShowCodeBlockDialog(true);
-  };
-
-  const handleCodeBlockConfirm = ({ language, code }) => {
-    if (code.trim()) {
-      // Insert code block with proper cursor positioning and ensure scrolling works
-      editor.chain()
-        .focus()
-        .setCodeBlock({ language })
-        .insertContent(code)
-        .insertContent('\n') // Add a new line after code block
-        .focus()
-        .run();
-      
-      // Ensure the editor scrolls to the new content
-      setTimeout(() => {
-        const proseMirrorEl = editor.view.dom;
-        if (proseMirrorEl) {
-          proseMirrorEl.scrollTop = proseMirrorEl.scrollHeight;
-        }
-      }, 100);
-    }
+    // Simply insert a JavaScript code block
+    editor.chain()
+      .focus()
+      .setCodeBlock({ language: 'javascript' })
+      .run();
   };
 
   if (!editor) {
@@ -148,7 +109,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
     <Button
       variant={isActive ? "default" : "ghost"}
       size="sm"
-      onClick={onClick}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       title={title}
       className="h-8 w-8 p-0"
     >
@@ -158,9 +122,9 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
 
   return (
     <>
-      <div className="rich-text-editor border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
+      <div className="border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20 bg-background">
         {/* Toolbar */}
-        <div className="toolbar border-b p-3 flex flex-wrap gap-1 bg-muted/30">
+        <div className="border-b p-3 flex flex-wrap gap-1 bg-muted/30">
         {/* Text Formatting */}
         <div className="flex items-center space-x-1 border-r pr-2 mr-2">
           <ToolbarButton
@@ -198,7 +162,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
           <ToolbarButton
             onClick={handleCodeBlock}
             isActive={editor.isActive('codeBlock')}
-            title="Code Block"
+            title="JavaScript Code Block (More languages coming in new update!)"
           >
             <Code2 className="h-4 w-4" />
           </ToolbarButton>
@@ -209,7 +173,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
           <Button
             variant={editor.isActive('heading', { level: 1 }) ? "default" : "ghost"}
             size="sm"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+            }}
             className="h-8 px-2 text-xs font-semibold"
           >
             H1
@@ -218,7 +185,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
           <Button
             variant={editor.isActive('heading', { level: 2 }) ? "default" : "ghost"}
             size="sm"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
+            }}
             className="h-8 px-2 text-xs font-semibold"
           >
             H2
@@ -227,7 +197,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
           <Button
             variant={editor.isActive('heading', { level: 3 }) ? "default" : "ghost"}
             size="sm"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 3 }).run();
+            }}
             className="h-8 px-2 text-xs font-semibold"
           >
             H3
@@ -315,7 +288,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
         <div className="max-h-[70vh] overflow-y-auto">
           <EditorContent 
             editor={editor} 
-            className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 bg-background"
+            className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 bg-background min-h-[400px]"
           />
         </div>
       </div>
@@ -328,15 +301,6 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
         onConfirm={handleLinkConfirm}
         defaultUrl={linkData.url}
         defaultText={linkData.text}
-      />
-
-      {/* Code Block Dialog */}
-      <CodeBlockDialog
-        isOpen={showCodeBlockDialog}
-        onClose={() => setShowCodeBlockDialog(false)}
-        onConfirm={handleCodeBlockConfirm}
-        defaultLanguage={codeBlockData.language}
-        defaultCode={codeBlockData.code}
       />
     </>
   );
