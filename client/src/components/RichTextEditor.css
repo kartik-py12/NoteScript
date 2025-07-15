@@ -1,0 +1,143 @@
+/* Rich Text Editor Styles */
+.rich-text-editor .ProseMirror {
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1.75 !important;
+  font-size: 1rem !important;
+  background: transparent !important;
+}
+
+.rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+.rich-text-editor .ProseMirror:focus {
+  box-shadow: none !important;
+}
+
+.rich-text-editor .ProseMirror h1 {
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+  font-weight: 700 !important;
+}
+
+.rich-text-editor .ProseMirror h2 {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.rich-text-editor .ProseMirror h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 600 !important;
+}
+
+.rich-text-editor .ProseMirror p {
+  margin-bottom: 1rem !important;
+}
+
+.rich-text-editor .ProseMirror ul, 
+.rich-text-editor .ProseMirror ol {
+  margin: 1rem 0 !important;
+  padding-left: 2rem !important;
+}
+
+.rich-text-editor .ProseMirror li {
+  margin: 0.5rem 0 !important;
+}
+
+.rich-text-editor .ProseMirror blockquote {
+  border-left: 4px solid hsl(var(--primary) / 0.2) !important;
+  padding-left: 1rem !important;
+  margin: 1.5rem 0 !important;
+  font-style: italic !important;
+  color: hsl(var(--muted-foreground)) !important;
+  background: hsl(var(--muted) / 0.3) !important;
+  border-radius: 0 0.375rem 0.375rem 0 !important;
+  padding: 1rem !important;
+}
+
+.rich-text-editor .ProseMirror code {
+  background: hsl(var(--muted)) !important;
+  padding: 0.125rem 0.375rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.875rem !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+.rich-text-editor .ProseMirror pre {
+  background: hsl(var(--muted)) !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto !important;
+  margin: 1rem 0 !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.rich-text-editor .ProseMirror pre code {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.rich-text-editor .ProseMirror hr {
+  border: none !important;
+  border-top: 2px solid hsl(var(--border)) !important;
+  margin: 2rem 0 !important;
+}
+
+.rich-text-editor .ProseMirror a {
+  color: hsl(var(--secondary)) !important;
+  text-decoration: underline !important;
+  transition: color 0.2s ease !important;
+}
+
+.rich-text-editor .ProseMirror a:hover {
+  color: hsl(var(--secondary) / 0.8) !important;
+}
+
+.rich-text-editor .ProseMirror strong {
+  font-weight: 600 !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.rich-text-editor .ProseMirror em {
+  font-style: italic !important;
+}
+
+/* Toolbar styles */
+.rich-text-editor .toolbar {
+  background: hsl(var(--background)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+/* Focus styles */
+.rich-text-editor:focus-within {
+  box-shadow: 0 0 0 2px hsl(var(--ring)) !important;
+  border-color: hsl(var(--ring)) !important;
+}
+
+/* Selection styles */
+.rich-text-editor .ProseMirror ::selection {
+  background: hsl(var(--primary) / 0.2) !important;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .rich-text-editor .ProseMirror {
+    color: hsl(var(--foreground)) !important;
+  }
+}

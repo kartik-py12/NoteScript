@@ -18,6 +18,7 @@ import {
   Link as LinkIcon,
   Unlink
 } from 'lucide-react';
+import './RichTextEditor.css';
 
 const RichTextEditor = ({ content, onChange, placeholder = "Start writing your note..." }) => {
   const editor = useEditor({
@@ -75,9 +76,9 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
   );
 
   return (
-    <div className="border rounded-lg">
+    <div className="rich-text-editor border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
       {/* Toolbar */}
-      <div className="border-b p-3 flex flex-wrap gap-1">
+      <div className="toolbar border-b p-3 flex flex-wrap gap-1 bg-muted/30">
         {/* Text Formatting */}
         <div className="flex items-center space-x-1 border-r pr-2 mr-2">
           <ToolbarButton
@@ -220,10 +221,12 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       </div>
 
       {/* Editor Content */}
-      <EditorContent 
-        editor={editor} 
-        className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary focus:outline-none p-4 min-h-[400px]"
-      />
+      <div className="relative bg-background">
+        <EditorContent 
+          editor={editor} 
+          className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 min-h-[500px] bg-background"
+        />
+      </div>
     </div>
   );
 };
