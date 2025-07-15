@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import { lowlight } from 'lowlight';
 import { Button } from './ui/button';
 import LinkInputDialog from './LinkInputDialog';
+import CodeBlockDialog from './CodeBlockDialog';
 import { 
   Bold, 
   Italic, 
@@ -13,6 +16,7 @@ import {
   ListOrdered, 
   Quote, 
   Code, 
+  Code2,
   Minus,
   Undo,
   Redo,
@@ -20,14 +24,49 @@ import {
   Unlink
 } from 'lucide-react';
 import './RichTextEditor.css';
+import './SyntaxHighlight.css';
+
+// Import common language syntaxes for lowlight v2
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+import java from 'highlight.js/lib/languages/java';
+import cpp from 'highlight.js/lib/languages/cpp';
+import html from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import json from 'highlight.js/lib/languages/json';
+import bash from 'highlight.js/lib/languages/bash';
+import sql from 'highlight.js/lib/languages/sql';
+
+// Register languages with lowlight v2
+lowlight.registerLanguage('javascript', javascript);
+lowlight.registerLanguage('typescript', typescript);
+lowlight.registerLanguage('python', python);
+lowlight.registerLanguage('java', java);
+lowlight.registerLanguage('cpp', cpp);
+lowlight.registerLanguage('html', html);
+lowlight.registerLanguage('css', css);
+lowlight.registerLanguage('json', json);
+lowlight.registerLanguage('bash', bash);
+lowlight.registerLanguage('sql', sql);
 
 const RichTextEditor = ({ content, onChange, placeholder = "Start writing your note..." }) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showCodeBlockDialog, setShowCodeBlockDialog] = useState(false);
   const [linkData, setLinkData] = useState({ url: '', text: '' });
+  const [codeBlockData, setCodeBlockData] = useState({ language: '', code: '' });
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        codeBlock: false, // Disable default code block to use our custom one
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+        HTMLAttributes: {
+          class: 'hljs',
+        },
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -43,10 +82,6 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       onChange(editor.getHTML());
     },
   });
-
-  if (!editor) {
-    return null;
-  }
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
@@ -78,6 +113,36 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
       editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     }
   };
+
+  const handleCodeBlock = () => {
+    setCodeBlockData({ language: '', code: '' });
+    setShowCodeBlockDialog(true);
+  };
+
+  const handleCodeBlockConfirm = ({ language, code }) => {
+    if (code.trim()) {
+      // Insert code block with proper cursor positioning and ensure scrolling works
+      editor.chain()
+        .focus()
+        .setCodeBlock({ language })
+        .insertContent(code)
+        .insertContent('\n') // Add a new line after code block
+        .focus()
+        .run();
+      
+      // Ensure the editor scrolls to the new content
+      setTimeout(() => {
+        const proseMirrorEl = editor.view.dom;
+        if (proseMirrorEl) {
+          proseMirrorEl.scrollTop = proseMirrorEl.scrollHeight;
+        }
+      }, 100);
+    }
+  };
+
+  if (!editor) {
+    return null;
+  }
 
   const ToolbarButton = ({ onClick, isActive, children, title }) => (
     <Button
@@ -128,6 +193,14 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
             title="Inline Code"
           >
             <Code className="h-4 w-4" />
+          </ToolbarButton>
+          
+          <ToolbarButton
+            onClick={handleCodeBlock}
+            isActive={editor.isActive('codeBlock')}
+            title="Code Block"
+          >
+            <Code2 className="h-4 w-4" />
           </ToolbarButton>
         </div>
 
@@ -239,10 +312,12 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
 
       {/* Editor Content */}
       <div className="relative bg-background">
-        <EditorContent 
-          editor={editor} 
-          className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 min-h-[500px] bg-background"
-        />
+        <div className="max-h-[70vh] overflow-y-auto">
+          <EditorContent 
+            editor={editor} 
+            className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted focus:outline-none p-6 bg-background"
+          />
+        </div>
       </div>
       </div>
 
@@ -253,6 +328,15 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing your n
         onConfirm={handleLinkConfirm}
         defaultUrl={linkData.url}
         defaultText={linkData.text}
+      />
+
+      {/* Code Block Dialog */}
+      <CodeBlockDialog
+        isOpen={showCodeBlockDialog}
+        onClose={() => setShowCodeBlockDialog(false)}
+        onConfirm={handleCodeBlockConfirm}
+        defaultLanguage={codeBlockData.language}
+        defaultCode={codeBlockData.code}
       />
     </>
   );

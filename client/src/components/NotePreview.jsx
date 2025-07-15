@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Eye, Calendar, User, Tag } from 'lucide-react';
+import { lowlight } from 'lowlight';
 import './NotePreview.css';
+import './SyntaxHighlight.css';
 
 const NotePreview = ({ title, content, tags, isPublic, author, createdAt, updatedAt }) => {
+  const contentRef = useRef(null);
+
   const formatDate = (date) => {
     if (!date) return '';
     return new Date(date).toLocaleDateString('en-US', {
@@ -22,6 +26,68 @@ const NotePreview = ({ title, content, tags, isPublic, author, createdAt, update
     const text = tempDiv.textContent || tempDiv.innerText || '';
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
+
+  // Apply syntax highlighting to code blocks in preview
+  useEffect(() => {
+    if (contentRef.current && content) {
+      console.log('Applying syntax highlighting to preview...');
+      const codeBlocks = contentRef.current.querySelectorAll('pre code');
+      console.log(`Found ${codeBlocks.length} code blocks`);
+      
+      codeBlocks.forEach((block, index) => {
+        // Skip if already highlighted
+        if (block.classList.contains('hljs-processed')) {
+          return;
+        }
+        
+        // Get language from class attribute
+        const classList = Array.from(block.classList);
+        const languageClass = classList.find(cls => cls.startsWith('language-'));
+        const language = languageClass ? languageClass.replace('language-', '') : '';
+        
+        console.log(`Block ${index}: language="${language}", text="${block.textContent?.substring(0, 50)}..."`);
+        
+        if (language && lowlight.registered(language)) {
+          try {
+            const result = lowlight.highlight(language, block.textContent || '');
+            console.log('Lowlight result:', result);
+            
+            // Use a simpler approach - create a temporary element and let lowlight structure the content
+            if (result && result.children && result.children.length > 0) {
+              // Convert hast tree to HTML
+              const toHtml = (node) => {
+                if (node.type === 'text') {
+                  return node.value || '';
+                }
+                if (node.type === 'element') {
+                  const className = node.properties?.className ? ` class="${node.properties.className.join(' ')}"` : '';
+                  const children = node.children ? node.children.map(toHtml).join('') : '';
+                  return `<${node.tagName}${className}>${children}</${node.tagName}>`;
+                }
+                return '';
+              };
+              
+              const htmlString = result.children.map(toHtml).join('');
+              block.innerHTML = htmlString;
+              block.classList.add('hljs', 'hljs-processed');
+              console.log(`Successfully highlighted block ${index} with language ${language}`);
+            } else {
+              // Fallback - just add hljs class for styling
+              block.classList.add('hljs', 'hljs-processed');
+              console.log(`No highlighting result for block ${index}, applied default styling`);
+            }
+          } catch (error) {
+            console.warn('Failed to highlight code block:', error);
+            block.classList.add('hljs', 'hljs-processed');
+          }
+        } else {
+          // Apply default styling for code blocks without language
+          block.classList.add('hljs', 'hljs-processed');
+          console.log(`Applied default hljs styling to block ${index} (language: ${language || 'none'})`);
+        }
+      });
+    }
+  }, [content]);
 
   return (
     <div className="space-y-6">
@@ -92,6 +158,7 @@ const NotePreview = ({ title, content, tags, isPublic, author, createdAt, update
           {content ? (
             <div className="note-preview-content">
               <div 
+                ref={contentRef}
                 className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert"
                 dangerouslySetInnerHTML={{ __html: content }}
               />
