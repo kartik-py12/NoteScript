@@ -41,7 +41,7 @@ const HomePage = () => {
           <h1 className="text-4xl font-bold text-primary mb-2">
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-muted-foreground">
             Ready to capture your thoughts and ideas?
           </p>
         </div>
@@ -55,7 +55,7 @@ const HomePage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{stats.total}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Notes created
               </p>
             </CardContent>
@@ -68,7 +68,7 @@ const HomePage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-secondary">{stats.public}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Shared with community
               </p>
             </CardContent>
@@ -81,7 +81,7 @@ const HomePage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-accent">{stats.private}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Personal notes
               </p>
             </CardContent>
@@ -116,7 +116,7 @@ const HomePage = () => {
                 {recentNotes.length === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-muted-foreground mb-4">
                       No notes yet. Create your first note to get started!
                     </p>
                     <Button onClick={handleCreateNote}>
@@ -144,7 +144,7 @@ const HomePage = () => {
                             )}
                           </div>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                           {stripHtml(note.content).substring(0, 150)}...
                         </p>
                         <div className="flex items-center justify-between">
@@ -160,7 +160,7 @@ const HomePage = () => {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center text-xs text-gray-500">
+                          <div className="flex items-center text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3 mr-1" />
                             {formatDate(note.updatedAt)}
                           </div>
@@ -217,19 +217,19 @@ const HomePage = () => {
               <CardContent className="space-y-3 text-sm">
                 <div className="p-3 bg-primary/5 rounded-lg">
                   <p className="font-medium text-primary mb-1">Rich Text Editor</p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     Use the toolbar to format your notes with bold, italic, headers, and lists.
                   </p>
                 </div>
                 <div className="p-3 bg-secondary/5 rounded-lg">
                   <p className="font-medium text-secondary mb-1">Tag Organization</p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     Add tags to your notes to organize and find them quickly.
                   </p>
                 </div>
                 <div className="p-3 bg-accent/5 rounded-lg">
                   <p className="font-medium text-accent mb-1">Public Sharing</p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     Toggle notes to public to share your knowledge with the community.
                   </p>
                 </div>

@@ -54,7 +54,7 @@ const Navbar = () => {
                     to={item.path}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-primary text-white'
+                        ? 'bg-accent text-black'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-secondary hover:text-secondary-foreground'
                     }`}
                   >

@@ -90,7 +90,7 @@ const NotePreview = ({ title, content, tags, isPublic, author, createdAt, update
         <CardContent className="pt-6">
           {content ? (
             <div 
-              className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-a:text-secondary prose-strong:text-primary prose-blockquote:border-primary/20 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted"
+              className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-primary prose-h1:text-3xl prose-h1:font-bold prose-h1:mb-4 prose-h1:mt-8 prose-h2:text-2xl prose-h2:font-semibold prose-h2:mb-3 prose-h2:mt-6 prose-h3:text-xl prose-h3:font-semibold prose-h3:mb-2 prose-h3:mt-4 prose-a:text-secondary prose-strong:text-primary prose-strong:font-semibold prose-blockquote:border-primary/20 prose-blockquote:bg-muted/30 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r prose-code:bg-muted prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-p:text-foreground prose-p:leading-relaxed prose-li:text-foreground prose-ul:text-foreground prose-ol:text-foreground"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           ) : (
