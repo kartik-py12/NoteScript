@@ -1,5 +1,5 @@
 // API configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = 'https://notescript-gfdvd8czgcdxdffr.westindia-01.azurewebsites.net/api';
 
 // Create axios-like functionality using fetch
 class ApiService {
