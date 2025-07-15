@@ -13,12 +13,10 @@ import authRoutes from './routes/auth.js';
 import noteRoutes from './routes/notes.js';
 import userRoutes from './routes/users.js';
 
-// Get current directory path for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+
 
 // Load environment variables from .env file
-dotenv.config({ path: join(__dirname, '.env') });
+dotenv.config();
 
 const app = express();
 
