@@ -1,4 +1,4 @@
-# Twilight Note Flow
+# NoteScript
 
 NoteScript is a modern, full-featured note-taking platform built with the MERN stack. Create, organize, and share your thoughts with a powerful rich text editor supporting formatting, headers, lists, links, and JavaScript syntax highlighting for code blocks. Enjoy seamless public/private note sharing, tag-based organization, advanced search capabilities, and a beautiful dark/light theme system.
 
@@ -63,7 +63,7 @@ The app uses a carefully chosen color palette:
 ## 📁 Project Structure
 
 ```
-twilight-note-flow/
+NoteScript/
 ├── client/                 # React frontend
 │   ├── public/
 │   ├── src/
@@ -94,7 +94,7 @@ twilight-note-flow/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd twilight-note-flow
+   cd notescript
    ```
 
 2. **Install dependencies for all packages**
@@ -244,12 +244,12 @@ npm run dev
 
 ## 🌐 Deployment
 
-### Frontend (Netlify/Vercel)
+### Frontend (Vercel)
 1. Build the client: `cd client && npm run build`
 2. Deploy the `build` folder to your hosting service
 3. Set environment variables if needed
 
-### Backend (Heroku/Railway)
+### Backend (Azure)
 1. Deploy the `server` directory
 2. Set environment variables:
    - `NODE_ENV=production`
