@@ -1,6 +1,6 @@
 # Twilight Note Flow
 
-A modern, feature-rich note-taking application built with the MERN stack (MongoDB, Express.js, React, Node.js). Features include rich text editing, public/private note sharing, authentication, tag-based organization, and a beautiful dark/light theme system.
+NoteScript is a modern, full-featured note-taking platform built with the MERN stack. Create, organize, and share your thoughts with a powerful rich text editor supporting formatting, headers, lists, links, and JavaScript syntax highlighting for code blocks. Enjoy seamless public/private note sharing, tag-based organization, advanced search capabilities, and a beautiful dark/light theme system.
 
 ## 🌟 Features
 
@@ -19,6 +19,7 @@ A modern, feature-rich note-taking application built with the MERN stack (MongoD
 - Bullet and numbered lists
 - Blockquotes and horizontal rules
 - Link support with easy management
+- **JavaScript Syntax Highlighting** - Beautiful code block highlighting for JavaScript
 - Undo/redo functionality
 
 ### Advanced Features
@@ -47,6 +48,7 @@ The app uses a carefully chosen color palette:
 - **TailwindCSS** - Utility-first CSS framework
 - **shadcn/ui** - Beautiful, accessible components
 - **Tiptap** - Rich text editor
+- **Lowlight** - JavaScript syntax highlighting for code blocks
 - **Lucide React** - Beautiful icons
 
 ### Backend
